@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regatas Telemetría · Divisor Multi-Barco GPX</title>
+  
+  <!-- Estilos del mapa Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Estilos propios oscuros de alta fidelidad -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+  <!-- CABECERA SUPERIOR -->
+  <header class="top-nav">
+    <div class="nav-left">
+      <span class="club-label">Equipo de Regatas RCNGC · Clase Optimist</span>
+      <h1 id="session-title" class="session-title">Entrenamiento y Pruebas</h1>
+      <p id="session-info" class="session-info">Esperando archivos GPX · 0 barcos sincronizados</p>
+    </div>
+
+    <div class="nav-right">
+      <div class="status-box">
+        <span id="badge-real-data" class="badge-status">SIN DATOS</span>
+        <div id="digital-clock" class="digital-clock">00:00:00</div>
+        <span id="clock-status-desc" class="clock-desc">Sin salida marcada</span>
+      </div>
+
+      <div class="top-buttons">
+        <label class="btn-action btn-upload" for="file-input" title="Puedes seleccionar varios archivos GPX a la vez manteniendo pulsada la tecla Ctrl">
+          📁 Cargar archivos GPX
+        </label>
+        <input type="file" id="file-input" accept=".gpx" multiple style="display: none;">
+        
+        <button id="btn-demo" class="btn-action btn-demo" title="Cargar 3 barcos compitiendo juntos para probar">
+          🧭 Probar 3 Barcos (Demo)
+        </button>
+
+        <button id="btn-clear-all" class="btn-action btn-clear" title="Borrar todo para empezar una nueva jornada">
+          🗑️ Empezar nueva sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- DISTRIBUCIÓN PRINCIPAL: MAPA + PANEL DERECHO -->
+  <div class="main-layout">
+    
+    <!-- CONTENEDOR DEL MAPA OSCURO TÁCTICO -->
+    <div class="map-wrapper">
+      <div id="map"></div>
+
+      <!-- Control flotante: Centrar flota -->
+      <div class="map-overlay-controls">
+        <button id="btn-center-flota" class="map-ctrl-btn" title="Centrar todos los barcos en la pantalla">🎯 Centrar Flota</button>
+      </div>
+
+      <!-- Escala náutica (esquina inferior izquierda) -->
+      <div class="nautical-scale">
+        <span id="scale-label">📏 Precisión milimétrica activa (sin redondeos)</span>
+      </div>
+    </div>
+
+    <!-- PANEL LATERAL DERECHO: GESTOR MULTI-BARCO Y RECORTE -->
+    <aside class="sidebar-panel">
+      
+      <!-- SECCIÓN 1: BARCOS CARGADOS Y SINCRONIZADOS -->
+      <div class="card dark-card">
+        <div class="card-header">
+          <h3>⛵ Barcos en el agua</h3>
+          <span id="boats-count-badge" class="badge-count">0</span>
+        </div>
+
+        <div id="no-boats-msg" class="empty-placeholder">
+          No hay barcos cargados. Pulsa en <strong>"📁 Cargar archivos GPX"</strong> o arrástralos aquí. Puedes meter todos los archivos que quieras a la vez.
+        </div>
+
+        <div id="boats-list" class="boats-container"></div>
+      </div>
+
+      <!-- SECCIÓN 2: RECORTADOR SIMULTÁNEO -->
+      <div class="card dark-card">
+        <div class="card-header">
+          <h3>✂️ Recortar Prueba para Todos</h3>
+          <span class="badge-mini">Recorta toda la flota</span>
+        </div>
+        <p class="card-instruction">
+          Mueve la barra naranja de abajo hasta la salida y la llegada. Se recortarán <strong>todos los barcos coincidentes en ese mismo segundo</strong>.
+        </p>
+
+        <div class="cut-selection-grid">
+          <div class="cut-point-card start-card">
+            <span class="cut-label green-text">🟢 Salida (Inicio)</span>
+            <span id="label-start-time" class="cut-time">--:--:--</span>
+            <button id="btn-set-start" class="btn-cut btn-set-start">Fijar salida aquí</button>
+          </div>
+
+          <div class="cut-point-card end-card">
+            <span class="cut-label red-text">🔴 Llegada (Meta)</span>
+            <span id="label-end-time" class="cut-time">--:--:--</span>
+            <button id="btn-set-end" class="btn-cut btn-set-end">Fijar llegada aquí</button>
+          </div>
+        </div>
+
+        <!-- Indicador de cuántos barcos entran en este corte -->
+        <div id="cut-summary-box" class="cut-summary-box">
+          <span id="cut-summary-text">Fija la salida y llegada para ver los barcos incluidos</span>
+        </div>
+
+        <div class="manga-input-row">
+          <label for="manga-name">Nombre de la prueba:</label>
+          <input type="text" id="manga-name" value="Manga 1" placeholder="Ej: Manga 1, Manga 2...">
+        </div>
+
+        <button id="btn-save-manga" class="btn-primary-orange btn-block" disabled>
+          ➕ Guardar y recortar todos los barcos
+        </button>
+      </div>
+
+      <!-- SECCIÓN 3: PRUEBAS GUARDADAS Y DESCARGA -->
+      <div class="card dark-card">
+        <div class="card-header">
+          <h3>🏆 Pruebas Recortadas</h3>
+          <span id="mangas-badge" class="badge-count">0</span>
+        </div>
+
+        <div id="no-mangas-placeholder" class="empty-placeholder">
+          Aún no has recortado ninguna prueba. Fija la salida y llegada arriba para crear la primera.
+        </div>
+
+        <div id="mangas-list" class="mangas-list"></div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- BARRA INFERIOR DE REPRODUCCIÓN (LÍNEA DE TIEMPO COMÚN) -->
+  <footer class="bottom-playback-bar">
+    <div class="playback-container">
+      
+      <!-- Botón de Play Circular Naranja -->
+      <button id="btn-play-pause" class="btn-play-circle" title="Reproducir / Pausar">
+        <span id="play-icon">▶</span>
+      </button>
+
+      <!-- Slider de tiempo con horas exactas -->
+      <div class="timeline-slider-container">
+        <div class="slider-marks">
+          <span id="time-mark-start">00:00:00</span>
+          <span id="time-mark-mid1">00:15:00</span>
+          <span id="time-mark-current" class="current-time-pill">00:00:00</span>
+          <span id="time-mark-mid2">00:45:00</span>
+          <span id="time-mark-end">01:00:00</span>
+        </div>
+        <input type="range" id="time-slider" min="0" max="100" value="0" step="1">
+      </div>
+
+      <!-- Selector de velocidad (Pills 1x a 120x) -->
+      <div class="speed-selector-group">
+        <span class="ctrl-group-label">VELOCIDAD</span>
+        <div class="pill-group" id="speed-pill-group">
+          <button class="pill-btn" data-speed="1">1x</button>
+          <button class="pill-btn" data-speed="5">5x</button>
+          <button class="pill-btn active" data-speed="15">15x</button>
+          <button class="pill-btn" data-speed="30">30x</button>
+          <button class="pill-btn" data-speed="60">60x</button>
+          <button class="pill-btn" data-speed="120">120x</button>
+        </div>
+      </div>
+
+      <!-- Selector de longitud de estela (Trail) -->
+      <div class="trail-selector-group">
+        <span class="ctrl-group-label">ESTELA</span>
+        <div class="pill-group" id="trail-pill-group">
+          <button class="pill-btn" data-trail="60">1 min</button>
+          <button class="pill-btn" data-trail="300">5 min</button>
+          <button class="pill-btn active" data-trail="all">Toda</button>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ZONA INFERIOR DE CARGA Y ARRASTRE MULTI-ARCHIVO -->
+  <section id="upload-drawer" class="upload-drawer">
+    <div class="drawer-left">
+      <h3>Cargar el entrenamiento o regata del día</h3>
+      <ol class="drawer-steps">
+        <li>Selecciona o arrastra <strong>todos los archivos .gpx que quieras a la vez</strong> (los relojes de varios tripulantes o barcos).</li>
+        <li>El sistema detecta automáticamente si coinciden en horario para sincronizarlos en la misma barra de tiempo.</li>
+        <li>Marca la salida y la meta: se recortarán <strong>todos los barcos al mismo instante</strong> y podrás descargarlos en una carpeta ZIP o archivo a archivo.</li>
+      </ol>
+    </div>
+
+    <div class="drawer-right drop-target" id="drop-target">
+      <div class="drop-target-inner">
+        <span class="drop-icon">⚓</span>
+        <strong>Arrastra aquí uno o varios archivos GPX a la vez</strong>
+        <p class="drop-sub">Puedes soltar todos los .gpx de la flota juntos</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Librería Leaflet -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Script de la aplicación con generador de ZIP y descargas continuas -->
+  <script src="app.js"></script>
+</body>
+</html>

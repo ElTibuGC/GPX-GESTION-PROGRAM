@@ -1,0 +1,847 @@
+/* ========================================================
+   DISEÑO OSCURO TÁCTICO · MULTI-BARCO REGATAS
+   ======================================================== */
+
+:root {
+  --bg-main: #0a1017;
+  --bg-panel: #0e1721;
+  --bg-card: #131e2b;
+  --bg-card-hover: #182637;
+  --border-subtle: #1e2e3f;
+  --border-focus: #ff6b4a;
+
+  --orange-primary: #ff6b4a;
+  --orange-hover: #ff856b;
+  --orange-glow: rgba(255, 107, 74, 0.25);
+
+  --cyan-accent: #00d2d3;
+  --green-start: #10b981;
+  --red-end: #ef4444;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Roboto Mono", Consolas, Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.dark-theme {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+/* ========================================================
+   1. CABECERA SUPERIOR
+   ======================================================== */
+.top-nav {
+  background-color: var(--bg-panel);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+}
+
+.nav-left .club-label {
+  font-size: 0.72rem;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.session-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.session-info {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.badge-status {
+  background: rgba(0, 210, 211, 0.15);
+  color: var(--cyan-accent);
+  border: 1px solid rgba(0, 210, 211, 0.3);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.digital-clock {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+  line-height: 1.1;
+}
+
+.clock-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.top-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-action {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-upload {
+  background: #1e293b;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+.btn-upload:hover {
+  background: #334155;
+  border-color: var(--cyan-accent);
+}
+
+.btn-demo {
+  background: rgba(255, 107, 74, 0.15);
+  color: var(--orange-primary);
+  border: 1px solid rgba(255, 107, 74, 0.4);
+}
+.btn-demo:hover {
+  background: var(--orange-primary);
+  color: white;
+}
+
+.btn-clear {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.btn-clear:hover {
+  background: var(--red-end);
+  color: white;
+}
+
+/* ========================================================
+   2. DISTRIBUCIÓN PRINCIPAL (MAPA + PANEL)
+   ======================================================== */
+.main-layout {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  min-height: 480px;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  background-color: #0b1a26;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  background-color: #0b1a26 !important;
+  background-image: 
+    linear-gradient(rgba(30, 58, 82, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 82, 0.35) 1px, transparent 1px) !important;
+  background-size: 60px 60px !important;
+}
+
+.leaflet-container {
+  background-color: #0b1a26 !important;
+  background-image: 
+    linear-gradient(rgba(30, 58, 82, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 82, 0.35) 1px, transparent 1px) !important;
+  background-size: 60px 60px !important;
+}
+
+/* Brújula y Rumbo */
+.compass-widget {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 999;
+  background: rgba(14, 23, 33, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.compass-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111a24;
+}
+
+.compass-arrow {
+  color: var(--orange-primary);
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: transform 0.15s ease-out;
+  transform-origin: center;
+}
+
+.compass-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.compass-title {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.compass-value {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+/* Botón flotante: Centrar flota */
+.map-overlay-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-ctrl-btn {
+  background: rgba(14, 23, 33, 0.85);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+}
+.map-ctrl-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--orange-primary);
+}
+
+.nautical-scale {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 999;
+  background: rgba(14, 23, 33, 0.8);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ========================================================
+   3. PANEL LATERAL DERECHO
+   ======================================================== */
+.sidebar-panel {
+  width: 440px;
+  background-color: var(--bg-panel);
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  overflow-y: auto;
+  z-index: 500;
+}
+
+.card.dark-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.card-header h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.badge-mini {
+  font-size: 0.65rem;
+  background: #1e2e3f;
+  color: var(--cyan-accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badge-count {
+  font-size: 0.72rem;
+  background: var(--orange-primary);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.card-instruction {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+/* Lista de Barcos en el Agua */
+.boats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.boat-card-item {
+  background: #0b131a;
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--orange-primary);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.boat-info-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.boat-color-badge {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.boat-name-txt {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  display: block;
+}
+
+.boat-sub-txt {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.boat-stats-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.boat-speed-live {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--cyan-accent);
+}
+
+.btn-remove-boat {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+}
+.btn-remove-boat:hover {
+  color: var(--red-end);
+}
+
+/* Rejilla de fijación de puntos (Salida / Llegada) */
+.cut-selection-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cut-point-card {
+  background: #0d151e;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.cut-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.green-text { color: var(--green-start); }
+.red-text { color: var(--red-end); }
+
+.cut-time {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.btn-cut {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.btn-set-start {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--green-start);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.btn-set-start:hover {
+  background: var(--green-start);
+  color: white;
+}
+
+.btn-set-end {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--red-end);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.btn-set-end:hover {
+  background: var(--red-end);
+  color: white;
+}
+
+/* Resumen visual de barcos incluidos en el corte */
+.cut-summary-box {
+  background: #081017;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+.cut-summary-box.ready {
+  border-color: var(--cyan-accent);
+  background: rgba(0, 210, 211, 0.08);
+  color: var(--cyan-accent);
+  font-weight: 700;
+}
+
+.manga-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.manga-input-row label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.manga-input-row input {
+  background: #0a1118;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+.manga-input-row input:focus {
+  outline: none;
+  border-color: var(--orange-primary);
+}
+
+.btn-primary-orange {
+  background: var(--orange-primary);
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary-orange:hover {
+  background: var(--orange-hover);
+}
+.btn-primary-orange:disabled {
+  background: #253342;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* Lista de mangas recortadas */
+.empty-placeholder {
+  text-align: center;
+  padding: 18px 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mangas-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manga-card-item {
+  background: #0b131a;
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--orange-primary);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manga-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.manga-card-title {
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+
+.manga-card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  gap: 4px;
+}
+
+.manga-boats-badge {
+  font-size: 0.72rem;
+  color: var(--cyan-accent);
+  background: rgba(0, 210, 211, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 210, 211, 0.2);
+  display: inline-block;
+  margin-top: 2px;
+}
+
+.manga-actions-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-download-all-manga {
+  background: var(--orange-primary);
+  color: white;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-download-all-manga:hover {
+  background: var(--orange-hover);
+}
+
+.individual-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.btn-boat-gpx {
+  background: #182635;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-boat-gpx:hover {
+  background: #25374b;
+  border-color: var(--cyan-accent);
+}
+
+.btn-delete-manga {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.btn-delete-manga:hover {
+  color: var(--red-end);
+}
+
+/* ========================================================
+   4. BARRA INFERIOR DE REPRODUCCIÓN (LÍNEA DE TIEMPO)
+   ======================================================== */
+.bottom-playback-bar {
+  background-color: var(--bg-panel);
+  border-top: 1px solid var(--border-subtle);
+  padding: 12px 24px;
+  z-index: 1000;
+}
+
+.playback-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.btn-play-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--orange-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 0 15px var(--orange-glow);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.btn-play-circle:hover {
+  background: var(--orange-hover);
+  transform: scale(1.05);
+}
+
+.timeline-slider-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slider-marks {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.current-time-pill {
+  background: rgba(255, 107, 74, 0.2);
+  color: var(--orange-primary);
+  border: 1px solid rgba(255, 107, 74, 0.4);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+#time-slider {
+  width: 100%;
+  accent-color: var(--orange-primary);
+  cursor: pointer;
+  height: 6px;
+  background: #1e2e3f;
+  border-radius: 3px;
+}
+
+.ctrl-group-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.pill-group {
+  display: flex;
+  background: #111a24;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.pill-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.pill-btn:hover {
+  color: var(--text-primary);
+}
+.pill-btn.active {
+  background: #233446;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* ========================================================
+   5. SECCIÓN INFERIOR DE CARGA Y ARRASTRE
+   ======================================================== */
+.upload-drawer {
+  background-color: var(--bg-main);
+  border-top: 1px solid var(--border-subtle);
+  padding: 16px 24px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.drawer-left {
+  flex: 1;
+}
+
+.drawer-left h3 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.drawer-steps {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding-left: 18px;
+  line-height: 1.5;
+}
+
+.drawer-right.drop-target {
+  flex: 1;
+  border: 1.5px dashed #2a3c50;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  background: rgba(14, 23, 33, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.drawer-right.drop-target:hover {
+  border-color: var(--orange-primary);
+  background: rgba(255, 107, 74, 0.05);
+}
+
+.drop-icon {
+  font-size: 1.8rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.drop-target-inner strong {
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  display: block;
+}
+
+.drop-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
