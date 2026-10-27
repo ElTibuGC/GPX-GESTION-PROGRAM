@@ -25,7 +25,7 @@
       <div class="status-box">
         <span id="badge-real-data" class="badge-status">SIN DATOS</span>
         <div id="digital-clock" class="digital-clock">00:00:00</div>
-        <span id="clock-status-desc" class="clock-desc">Sin salida marcada</span>
+        <span id="clock-status-desc" class="clock-desc">Sin inicio marcado</span>
       </div>
 
       <div class="top-buttons">
@@ -50,7 +50,23 @@
     
     <!-- CONTENEDOR DEL MAPA OSCURO TÁCTICO -->
     <div class="map-wrapper">
-      <div id="map"></div>
+      <div id="map-rotator" class="map-rotator">
+        <div id="map"></div>
+      </div>
+
+      <!-- Widget flotante: Orientación Manual del Campo de Regatas -->
+      <div class="map-orientation-widget">
+        <div class="orient-header">
+          <span class="orient-title">🧭 Orientación del campo</span>
+          <span id="orient-degrees" class="orient-deg-badge">000°</span>
+        </div>
+        <div class="orient-controls">
+          <button id="btn-rot-left" class="btn-rot-step" title="Girar 15° a la izquierda">⟲ 15°</button>
+          <input type="range" id="orient-slider" min="0" max="359" value="0" step="1" title="Arrastra para orientar el campo como quieras">
+          <button id="btn-rot-right" class="btn-rot-step" title="Girar 15° a la derecha">⟳ 15°</button>
+          <button id="btn-rot-reset" class="btn-rot-reset" title="Restablecer (Norte arriba)">Norte</button>
+        </div>
+      </div>
 
       <!-- Control flotante: Centrar flota -->
       <div class="map-overlay-controls">
@@ -87,26 +103,26 @@
           <span class="badge-mini">Recorta toda la flota</span>
         </div>
         <p class="card-instruction">
-          Mueve la barra naranja de abajo hasta la salida y la llegada. Se recortarán <strong>todos los barcos coincidentes en ese mismo segundo</strong>.
+          Mueve la barra naranja de abajo hasta el inicio y el final. Se recortarán <strong>todos los barcos coincidentes en ese mismo segundo</strong>.
         </p>
 
         <div class="cut-selection-grid">
           <div class="cut-point-card start-card">
-            <span class="cut-label green-text">🟢 Salida (Inicio)</span>
+            <span class="cut-label green-text">🟢 INICIO</span>
             <span id="label-start-time" class="cut-time">--:--:--</span>
-            <button id="btn-set-start" class="btn-cut btn-set-start">Fijar salida aquí</button>
+            <button id="btn-set-start" class="btn-cut btn-set-start">Fijar inicio aquí</button>
           </div>
 
           <div class="cut-point-card end-card">
-            <span class="cut-label red-text">🔴 Llegada (Meta)</span>
+            <span class="cut-label red-text">🔴 FINAL</span>
             <span id="label-end-time" class="cut-time">--:--:--</span>
-            <button id="btn-set-end" class="btn-cut btn-set-end">Fijar llegada aquí</button>
+            <button id="btn-set-end" class="btn-cut btn-set-end">Fijar final aquí</button>
           </div>
         </div>
 
         <!-- Indicador de cuántos barcos entran en este corte -->
         <div id="cut-summary-box" class="cut-summary-box">
-          <span id="cut-summary-text">Fija la salida y llegada para ver los barcos incluidos</span>
+          <span id="cut-summary-text">Fija el inicio y final para ver los barcos incluidos</span>
         </div>
 
         <div class="manga-input-row">
@@ -127,7 +143,7 @@
         </div>
 
         <div id="no-mangas-placeholder" class="empty-placeholder">
-          Aún no has recortado ninguna prueba. Fija la salida y llegada arriba para crear la primera.
+          Aún no has recortado ninguna prueba. Fija el inicio y final arriba para crear la primera.
         </div>
 
         <div id="mangas-list" class="mangas-list"></div>
@@ -191,7 +207,7 @@
       <ol class="drawer-steps">
         <li>Selecciona o arrastra <strong>todos los archivos .gpx que quieras a la vez</strong> (los relojes de varios tripulantes o barcos).</li>
         <li>El sistema detecta automáticamente si coinciden en horario para sincronizarlos en la misma barra de tiempo.</li>
-        <li>Marca la salida y la meta: se recortarán <strong>todos los barcos al mismo instante</strong> y podrás descargarlos en una carpeta ZIP o archivo a archivo.</li>
+        <li>Marca el <strong>inicio</strong> y el <strong>final</strong>: se recortarán todos los barcos al mismo instante y podrás descargarlos en una carpeta ZIP o archivo a archivo.</li>
       </ol>
     </div>
 

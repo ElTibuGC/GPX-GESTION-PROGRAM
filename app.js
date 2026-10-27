@@ -13,13 +13,14 @@ const STORE_NAME = 'regatta_session';
 // --- Estado Global Multi-Barco ---
 let loadedBoats = [];         // Lista de barcos: [ { id, name, fileName, color, points, startTime, endTime, ghostPolyline, trailPolyline, marker, gpxText } ]
 let map = null;               // Instancia Leaflet (Fondo plano sin APIs)
+let currentMapRotation = 0;   // Ángulo de rotación manual del mapa (0° a 359°)
 
 let globalMinTime = null;     // Hora de inicio más temprana de la flota
 let globalMaxTime = null;     // Hora de fin más tardía de la flota
 let currentSimTime = null;    // Hora actual en la línea de tiempo
 
-let startCutTime = null;      // Hora de salida fijada (Date)
-let endCutTime = null;        // Hora de llegada fijada (Date)
+let startCutTime = null;      // Hora de inicio fijada (Date)
+let endCutTime = null;        // Hora de final fijada (Date)
 let selectionPolylines = [];  // Líneas verdes de previsualización del corte
 
 let isPlaying = false;        // Estado de reproducción
@@ -61,6 +62,9 @@ function initFlatNauticalMap() {
   });
 
   L.control.zoom({ position: 'topright' }).addTo(map);
+
+  // Compensar el arrastre del ratón cuando el mapa esté rotado
+  patchLeafletDragForRotation();
 }
 
 // ========================================================
@@ -146,7 +150,7 @@ function setupEventListeners() {
   // Centrar flota
   btnCenterFlota.addEventListener('click', centerFleetOnMap);
 
-  // Fijar Salida y Llegada
+  // Fijar INICIO y FINAL
   btnSetStart.addEventListener('click', () => {
     if (!currentSimTime) return;
     startCutTime = new Date(currentSimTime);
@@ -161,6 +165,105 @@ function setupEventListeners() {
 
   // Guardar manga para todos los barcos
   btnSaveManga.addEventListener('click', saveMangaForAllBoats);
+
+  // Controles de orientación manual del mapa
+  setupOrientationControls();
+}
+
+// ========================================================
+// 2.1 ORIENTACIÓN MANUAL DEL MAPA Y PARCHE DE ARRASTRE
+// ========================================================
+
+function setupOrientationControls() {
+  const orientSlider = document.getElementById('orient-slider');
+  const btnRotLeft = document.getElementById('btn-rot-left');
+  const btnRotRight = document.getElementById('btn-rot-right');
+  const btnRotReset = document.getElementById('btn-rot-reset');
+
+  if (orientSlider) {
+    orientSlider.addEventListener('input', (e) => {
+      setMapRotation(parseInt(e.target.value, 10));
+    });
+  }
+
+  if (btnRotLeft) {
+    btnRotLeft.addEventListener('click', () => {
+      let next = (currentMapRotation - 15 + 360) % 360;
+      setMapRotation(next);
+    });
+  }
+
+  if (btnRotRight) {
+    btnRotRight.addEventListener('click', () => {
+      let next = (currentMapRotation + 15) % 360;
+      setMapRotation(next);
+    });
+  }
+
+  if (btnRotReset) {
+    btnRotReset.addEventListener('click', () => {
+      setMapRotation(0);
+    });
+  }
+}
+
+function setMapRotation(deg, saveToDb = true) {
+  currentMapRotation = ((deg % 360) + 360) % 360;
+  const rotator = document.getElementById('map-rotator');
+  const badge = document.getElementById('orient-degrees');
+  const slider = document.getElementById('orient-slider');
+
+  if (rotator) {
+    rotator.style.transform = `rotate(${currentMapRotation}deg)`;
+  }
+  if (badge) {
+    badge.textContent = `${String(currentMapRotation).padStart(3, '0')}°`;
+  }
+  if (slider) {
+    slider.value = currentMapRotation;
+  }
+
+  if (saveToDb) {
+    dbSet('saved_map_rotation', currentMapRotation);
+  }
+}
+
+/**
+ * Ajusta matemáticamente el cálculo de arrastre del ratón para que,
+ * cuando el mapa esté girado, el arrastre siga exactamente el movimiento de la mano.
+ */
+function patchLeafletDragForRotation() {
+  if (L.Draggable && L.Draggable.prototype._onMove) {
+    const originalOnMove = L.Draggable.prototype._onMove;
+    L.Draggable.prototype._onMove = function (e) {
+      if (currentMapRotation === 0 || !this._startPoint) {
+        return originalOnMove.call(this, e);
+      }
+      var first = (e.touches && e.touches.length === 1 ? e.touches[0] : e);
+      var offset = new L.Point(first.clientX, first.clientY)._subtract(this._startPoint);
+      if (!offset.x && !offset.y) return;
+      if (Math.abs(offset.x) + Math.abs(offset.y) < this.options.clickTolerance) return;
+
+      if (!this._moved) {
+        this.fire('dragstart');
+        this._moved = true;
+        this._startPos = L.DomUtil.getPosition(this._element);
+        L.DomUtil.addClass(document.body, 'leaflet-dragging');
+        this._lastTarget = e.target || e.srcElement;
+        L.DomUtil.addClass(this._lastTarget, 'leaflet-drag-target');
+      }
+
+      var rad = -currentMapRotation * (Math.PI / 180);
+      var rotX = offset.x * Math.cos(rad) - offset.y * Math.sin(rad);
+      var rotY = offset.x * Math.sin(rad) + offset.y * Math.cos(rad);
+
+      this._newPos = this._startPos.add(new L.Point(rotX, rotY));
+      this._moving = true;
+      L.Util.cancelAnimFrame(this._animRequest);
+      this._lastEvent = e;
+      this._animRequest = L.Util.requestAnimFrame(this._updatePosition, this, true);
+    };
+  }
 }
 
 // ========================================================
@@ -236,6 +339,11 @@ async function persistCurrentState() {
 async function restoreSessionState() {
   const savedBoats = await dbGet('saved_boats');
   const savedMangas = await dbGet('saved_mangas');
+  const savedRotation = await dbGet('saved_map_rotation');
+
+  if (savedRotation !== null && savedRotation !== undefined) {
+    setMapRotation(savedRotation, false);
+  }
 
   if (savedBoats && savedBoats.length > 0) {
     savedBoats.forEach(b => {
@@ -678,10 +786,10 @@ function updateCutUI() {
 
   if (startCutTime) {
     startLabel.textContent = formatTimeOnly(startCutTime);
-    clockStatusDesc.textContent = `Salida fijada: ${formatTimeOnly(startCutTime)}`;
+    clockStatusDesc.textContent = `Inicio fijado: ${formatTimeOnly(startCutTime)}`;
   } else {
     startLabel.textContent = "--:--:--";
-    clockStatusDesc.textContent = "Sin salida marcada";
+    clockStatusDesc.textContent = "Sin inicio marcado";
   }
 
   if (endCutTime) {
@@ -726,13 +834,13 @@ function updateCutUI() {
   } else {
     btnSave.disabled = true;
     cutSummaryBox.classList.remove('ready');
-    cutSummaryText.textContent = "Fija la salida y llegada para ver los barcos incluidos";
+    cutSummaryText.textContent = "Fija el inicio y final para ver los barcos incluidos";
   }
 }
 
 async function saveMangaForAllBoats() {
   if (!startCutTime || !endCutTime || startCutTime.getTime() >= endCutTime.getTime()) {
-    alert("⚠️ Debes fijar una Salida y una Llegada válidas.");
+    alert("⚠️ Debes fijar un INICIO y un FINAL válidos.");
     return;
   }
 

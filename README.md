@@ -52,6 +52,15 @@ GPX GESTION PROGRAM/
 
 Todos los avances y mejoras del programa se anotarán en esta sección para llevar un control claro y fácil de entender.
 
+### [Versión 0.10.0] - 27/10/2026
+- **Orientación manual del campo de regatas (Rotación 360°):**
+  - Nuevo control flotante en la esquina superior izquierda del mapa para girar el campo al ángulo deseado (ideal para poner el viento o la boya de barlovento orientada hacia arriba).
+  - Incluye barra deslizante de 0° a 359°, botones de giro rápido de 15° y botón de *"Norte"* para volver a la orientación original.
+  - El arrastre y movimiento del mapa con el ratón se ajusta de forma automática al ángulo de rotación.
+  - La orientación elegida se guarda en memoria y se conserva tras pulsar `F5`.
+- **Terminología simplificada (INICIO / FINAL):**
+  - Se eliminaron las palabras *"Salida"* y *"Llegada"*, cambiándolas en toda la interfaz por **"INICIO"** y **"FINAL"**.
+
 ### [Versión 0.9.0] - 26/10/2026
 - **Personalización para el RCNGC (Clase Optimist):**
   - Cambio del título superior por: **Equipo de Regatas RCNGC · Clase Optimist**.

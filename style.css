@@ -180,6 +180,18 @@ body.dark-theme {
   flex: 1;
   position: relative;
   background-color: #0b1a26;
+  overflow: hidden;
+}
+
+/* Contenedor ampliado para rotación suave del mapa sin esquinas vacías */
+.map-rotator {
+  width: 160%;
+  height: 160%;
+  position: absolute;
+  top: -30%;
+  left: -30%;
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 #map {
@@ -198,6 +210,89 @@ body.dark-theme {
     linear-gradient(rgba(30, 58, 82, 0.35) 1px, transparent 1px),
     linear-gradient(90deg, rgba(30, 58, 82, 0.35) 1px, transparent 1px) !important;
   background-size: 60px 60px !important;
+}
+
+/* ========================================================
+   WIDGET DE ORIENTACIÓN MANUAL DEL MAPA
+   ======================================================== */
+.map-orientation-widget {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1000;
+  background: rgba(14, 23, 33, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+.orient-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.orient-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.orient-deg-badge {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--cyan-accent);
+  background: rgba(0, 210, 211, 0.12);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.orient-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-rot-step,
+.btn-rot-reset {
+  background: #182635;
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.btn-rot-step:hover,
+.btn-rot-reset:hover {
+  background: #25374b;
+  border-color: var(--orange-primary);
+  color: var(--orange-primary);
+}
+
+.btn-rot-reset {
+  background: rgba(255, 107, 74, 0.1);
+  color: var(--orange-primary);
+  border-color: rgba(255, 107, 74, 0.3);
+}
+
+#orient-slider {
+  width: 110px;
+  accent-color: var(--orange-primary);
+  cursor: pointer;
+  height: 4px;
 }
 
 /* Brújula y Rumbo */
